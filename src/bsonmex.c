@@ -25,10 +25,12 @@ static bool ConvertBinaryArrayToBSON(const mxArray* input,
                                      bson_t* output) {
   size_t num_elements = mxGetNumberOfElements(input);
   uint8_t* values = (uint8_t*)mxGetData(input);
+  int length = 0;
+  const bson_uint8_t* data;
   if (num_elements == 0)
     return BSON_APPEND_NULL(output, (name) ? name : "0") == TRUE;
-  const bson_uint8_t* data = (const bson_uint8_t*)mxGetData(input);
-  int length = mxGetNumberOfElements(input);
+  data = (const bson_uint8_t*)mxGetData(input);
+  length = mxGetNumberOfElements(input);
   return BSON_APPEND_BINARY(output,
                             (name) ? name : "0",
                             BSON_SUBTYPE_BINARY,
@@ -45,6 +47,7 @@ static bool ConvertShortArrayToBSON(const mxArray* input,
   size_t num_elements = mxGetNumberOfElements(input);
   int16_t* values = (int16_t*)mxGetData(input);
   bson_t array;
+  int i;
   if (num_elements == 0)
     return BSON_APPEND_NULL(output, (name) ? name : "0") == TRUE;
   if (num_elements == 1)
@@ -55,7 +58,7 @@ static bool ConvertShortArrayToBSON(const mxArray* input,
                                       (int)strlen(name),
                                       &array) != TRUE)
     return false;
-  for (int i = 0; i < num_elements; ++i) {
+  for (i = 0; i < num_elements; ++i) {
     if (sprintf(key, "%d", i) < 0)
       return false;
     if (BSON_APPEND_INT32((name) ? &array : output, key, values[i]) != TRUE)
@@ -75,6 +78,7 @@ static bool ConvertIntegerArrayToBSON(const mxArray* input,
   size_t num_elements = mxGetNumberOfElements(input);
   int32_t* values = (int32_t*)mxGetData(input);
   bson_t array;
+  int i;
   if (num_elements == 0)
     return BSON_APPEND_NULL(output, (name) ? name : "0") == TRUE;
   if (num_elements == 1)
@@ -85,7 +89,7 @@ static bool ConvertIntegerArrayToBSON(const mxArray* input,
                                       (int)strlen(name),
                                       &array) != TRUE)
     return false;
-  for (int i = 0; i < num_elements; ++i) {
+  for (i = 0; i < num_elements; ++i) {
     if (sprintf(key, "%d", i) < 0)
       return false;
     if (BSON_APPEND_INT32((name) ? &array : output, key, values[i]) != TRUE)
@@ -105,6 +109,7 @@ static bool ConvertLongArrayToBSON(const mxArray* input,
   size_t num_elements = mxGetNumberOfElements(input);
   int64_t* values = (int64_t*)mxGetData(input);
   bson_t array;
+  int i;
   if (num_elements == 0)
     return BSON_APPEND_NULL(output, (name) ? name : "0") == TRUE;
   if (num_elements == 1)
@@ -115,7 +120,7 @@ static bool ConvertLongArrayToBSON(const mxArray* input,
                                       (int)strlen(name),
                                       &array) != TRUE)
     return false;
-  for (int i = 0; i < num_elements; ++i) {
+  for (i = 0; i < num_elements; ++i) {
     if (sprintf(key, "%d", i) < 0)
       return false;
     if (BSON_APPEND_INT64((name) ? &array : output, key, values[i]) != TRUE)
@@ -135,6 +140,7 @@ static bool ConvertLogicalArrayToBSON(const mxArray* input,
   size_t num_elements = mxGetNumberOfElements(input);
   mxLogical* values = mxGetLogicals(input);
   bson_t array;
+  int i;
   if (num_elements == 0)
     return BSON_APPEND_NULL(output, (name) ? name : "0") == TRUE;
   if (num_elements == 1)
@@ -145,7 +151,7 @@ static bool ConvertLogicalArrayToBSON(const mxArray* input,
                                       (int)strlen(name),
                                       &array) != TRUE)
     return false;
-  for (int i = 0; i < num_elements; ++i) {
+  for (i = 0; i < num_elements; ++i) {
     if (sprintf(key, "%d", i) < 0)
       return false;
     if (BSON_APPEND_BOOL((name) ? &array : output, key, values[i]) != TRUE)
@@ -161,20 +167,21 @@ static bool ConvertLogicalArrayToBSON(const mxArray* input,
 static bool ConvertCharArrayToBSON(const mxArray* input,
                                    const char* name,
                                    bson_t* output) {
-  mxArray* prhs[2];
-  prhs[0] = (mxArray*)input;
-  prhs[1] = mxCreateString("UTF-8");
+  mxArray* prhs[] = {(mxArray*)input, mxCreateString("UTF-8")};
   mxArray* converted_input = NULL;
+  size_t length;
+  char* value;
+  bool status;
   mexCallMATLAB(1, &converted_input, 2, prhs, "unicode2native");
-  size_t length = mxGetNumberOfElements(converted_input);
-  char* value = (char*)mxGetData(converted_input);
+  length = mxGetNumberOfElements(converted_input);
+  value = (char*)mxGetData(converted_input);
   if (length && !value)
     return false;
-  bool status = bson_append_utf8(output,
-                                 (name) ? name : "0",
-                                 (int)strlen((name) ? name : "0"),
-                                 value,
-                                 length) == TRUE;
+  status = bson_append_utf8(output,
+                            (name) ? name : "0",
+                            (int)strlen((name) ? name : "0"),
+                            value,
+                            length) == TRUE;
   mxDestroyArray(prhs[1]);
   mxDestroyArray(converted_input);
   return status;
@@ -189,6 +196,7 @@ static bool ConvertFloatArrayToBSON(const mxArray* input,
   size_t num_elements = mxGetNumberOfElements(input);
   float* values = (float*)mxGetData(input);
   bson_t array;
+  int i;
   if (num_elements == 0)
     return BSON_APPEND_NULL(output, (name) ? name : "0") == TRUE;
   if (num_elements == 1)
@@ -199,7 +207,7 @@ static bool ConvertFloatArrayToBSON(const mxArray* input,
                                       (int)strlen(name),
                                       &array) != TRUE)
     return false;
-  for (int i = 0; i < num_elements; ++i) {
+  for (i = 0; i < num_elements; ++i) {
     if (sprintf(key, "%d", i) < 0)
       return false;
     if (BSON_APPEND_DOUBLE((name) ? &array : output, key, values[i]) != TRUE)
@@ -219,6 +227,7 @@ static bool ConvertDoubleArrayToBSON(const mxArray* input,
   size_t num_elements = mxGetNumberOfElements(input);
   double* values = mxGetPr(input);
   bson_t array;
+  int i;
   if (num_elements == 0)
     return BSON_APPEND_NULL(output, (name) ? name : "0") == TRUE;
   if (num_elements == 1)
@@ -229,7 +238,7 @@ static bool ConvertDoubleArrayToBSON(const mxArray* input,
                                       (int)strlen(name),
                                       &array) != TRUE)
     return false;
-  for (int i = 0; i < num_elements; ++i) {
+  for (i = 0; i < num_elements; ++i) {
     if (sprintf(key, "%d", i) < 0)
       return false;
     if (BSON_APPEND_DOUBLE((name) ? &array : output, key, values[i]) != TRUE)
@@ -248,14 +257,15 @@ static bool ConvertDateArrayToBSON(const mxArray* input,
   char key[16];
   size_t num_elements = mxGetNumberOfElements(input);
   bson_t array;
+  int i;
   if (num_elements == 0)
     return BSON_APPEND_NULL(output, (name) ? name : "0") == TRUE;
   if (num_elements == 1) {
     mxArray* value = mxGetProperty(input, 0, "number");
+    bson_int64_t date_value;
     if (!value)
       return false;
-    bson_int64_t date_value = (bson_int64_t)(
-        (mxGetScalar(value) - 719529) * 86400);
+    date_value = (bson_int64_t)((mxGetScalar(value) - 719529) * 86400);
     return BSON_APPEND_DATE_TIME(output, (name) ? name : "0", date_value) ==
            TRUE;
   }
@@ -264,14 +274,15 @@ static bool ConvertDateArrayToBSON(const mxArray* input,
                                       (int)strlen(name),
                                       &array) != TRUE)
     return false;
-  for (int i = 0; i < num_elements; ++i) {
+  for (i = 0; i < num_elements; ++i) {
+    mxArray* value;
+    bson_int64_t date_value;
     if (sprintf(key, "%d", i) < 0)
       return false;
-    mxArray* value = mxGetProperty(input, i, "number");
+    value = mxGetProperty(input, i, "number");
     if (!value)
       return false;
-    bson_int64_t date_value = (bson_int64_t)(
-      (mxGetScalar(value) - 719529) * 86400);
+    date_value = (bson_int64_t)((mxGetScalar(value) - 719529) * 86400);
     if (BSON_APPEND_DATE_TIME((name) ? &array : output,
                               key,
                               date_value) != TRUE)
@@ -290,12 +301,13 @@ static bool ConvertCellArrayToBSON(const mxArray* input,
   char key[16];
   size_t num_elements = mxGetNumberOfElements(input);
   bson_t array;
+  int i;
   if (name && bson_append_array_begin(output,
                                       name,
                                       (int)strlen(name),
                                       &array) != TRUE)
     return false;
-  for (int i = 0; i < num_elements; ++i) {
+  for (i = 0; i < num_elements; ++i) {
     mxArray* element = mxGetCell(input, i);
     if (sprintf(key, "%d", i) < 0)
       return false;
@@ -326,6 +338,7 @@ static bool ConvertStructArrayToBSON(const mxArray* input,
   size_t num_elements = mxGetNumberOfElements(input);
   int num_fields = mxGetNumberOfFields(input);
   bson_t array;
+  int i, j;
   if (num_elements == 1) {
     bson_t document;
     if (name && bson_append_document_begin(output,
@@ -333,10 +346,10 @@ static bool ConvertStructArrayToBSON(const mxArray* input,
                                            (int)strlen(name),
                                            &document) != TRUE)
       return false;
-    for (int i = 0; i < num_fields; ++i) {
+    for (i = 0; i < num_fields; ++i) {
       mxArray* element = mxGetFieldByNumber(input, 0, i);
       const char* field_name = mxGetFieldNameByNumber(input, i);
-      // Convert string to OID only if a scalar struct with id field.
+      /* Convert string to OID only if a scalar struct with id field. */
       if (name == NULL &&
           strcmp(field_name, "id_") == 0 &&
           mxIsChar(element) &&
@@ -360,7 +373,7 @@ static bool ConvertStructArrayToBSON(const mxArray* input,
                                         (int)strlen(name),
                                         &array) != TRUE)
       return false;
-    for (int j = 0; j < num_elements; ++j) {
+    for (j = 0; j < num_elements; ++j) {
       bson_t document;
       if (sprintf(key, "%d", j) < 0)
         return false;
@@ -369,7 +382,7 @@ static bool ConvertStructArrayToBSON(const mxArray* input,
                                      (int)strlen(key),
                                      &document) != TRUE)
         return false;
-      for (int i = 0; i < num_fields; ++i) {
+      for (i = 0; i < num_fields; ++i) {
         mxArray* element = mxGetFieldByNumber(input, 0, i);
         const char* field_name = mxGetFieldNameByNumber(input, i);
         if (!ConvertArrayToBSON(element, field_name, &document))
@@ -393,8 +406,10 @@ static mxArray* ConvertNDArrayToCellArray(const mxArray* input,
   mwSize last_dimentions = dims[ndims - 1];
   mxArray* array = mxCreateCellMatrix(1, last_dimentions);
   mwSize num_elements = mxGetNumberOfElements(input) / last_dimentions;
-  for (int i = 0; i < last_dimentions; ++i) {
+  int i, j;
+  for (i = 0; i < last_dimentions; ++i) {
     mxArray* element = NULL;
+    mxArray* split_element;
     switch (mxGetClassID(input)) {
       case mxSTRUCT_CLASS: {
         int nfields = mxGetNumberOfFields(input);
@@ -417,7 +432,7 @@ static mxArray* ConvertNDArrayToCellArray(const mxArray* input,
       }
       case mxCELL_CLASS: {
         element = mxCreateCellArray(ndims - 1, dims);
-        for (int j = 0; j < num_elements; ++j) {
+        for (j = 0; j < num_elements; ++j) {
           mwSize index = j + num_elements * i;
           mxSetCell(element, j, mxDuplicateArray(mxGetCell(input, index)));
         }
@@ -433,30 +448,33 @@ static mxArray* ConvertNDArrayToCellArray(const mxArray* input,
       case mxINT64_CLASS:
       case mxUINT64_CLASS:
       case mxSINGLE_CLASS: {
+        mwSize element_size, stride;
         element = mxCreateNumericArray(ndims - 1,
                                        dims,
                                        mxGetClassID(input),
                                        mxREAL);
-        mwSize element_size = mxGetElementSize(input);
-        mwSize stride = element_size * num_elements;
+        element_size = mxGetElementSize(input);
+        stride = element_size * num_elements;
         memcpy((void*)mxGetData(element),
                (void*)mxGetData(input) + i * stride,
                stride);
         break;
       }
       case mxCHAR_CLASS: {
+        mwSize element_size, stride;
         element = mxCreateCharArray(ndims - 1, dims);
-        mwSize element_size = mxGetElementSize(input);
-        mwSize stride = element_size * num_elements;
+        element_size = mxGetElementSize(input);
+        stride = element_size * num_elements;
         memcpy((void*)mxGetData(element),
                (void*)mxGetData(input) + i * stride,
                stride);
         break;
       }
       case mxLOGICAL_CLASS: {
+        mwSize element_size, stride;
         element = mxCreateLogicalArray(ndims - 1, dims);
-        mwSize element_size = mxGetElementSize(input);
-        mwSize stride = element_size * num_elements;
+        element_size = mxGetElementSize(input);
+        stride = element_size * num_elements;
         memcpy((void*)mxGetData(element),
                (void*)mxGetData(input) + i * stride,
                stride);
@@ -471,7 +489,7 @@ static mxArray* ConvertNDArrayToCellArray(const mxArray* input,
     }
     if (!element)
       return NULL;
-    mxArray* split_element = Convert2DOrNDArrayToCellArray(element);
+    split_element = Convert2DOrNDArrayToCellArray(element);
     if (!split_element)
       return NULL;
     if (split_element != element)
@@ -487,19 +505,21 @@ static mxArray* Convert2DArrayToCellArray(const mxArray* input,
                                    mwSize ndims,
                                    const mwSize* dims) {
   mxArray* array = mxCreateCellMatrix(1, dims[0]);
-  for (int i = 0; i < dims[0]; ++i) {
+  int i, j;
+  for (i = 0; i < dims[0]; ++i) {
     mxArray* element = NULL;
     switch (mxGetClassID(input)) {
       case mxSTRUCT_CLASS: {
         int nfields = mxGetNumberOfFields(input);
         const char** fields = (const char**)mxMalloc(
             sizeof(const char*) * nfields);
-        for (int k = 0; k < nfields; ++k)
+        int k;
+        for (k = 0; k < nfields; ++k)
           fields[k] = mxGetFieldNameByNumber(input, k);
         element = mxCreateStructMatrix(1, dims[1], nfields, fields);
-        for (int j = 0; j < dims[1]; ++j) {
+        for (j = 0; j < dims[1]; ++j) {
           mwSize index = i + j * dims[0];
-          for (int k = 0; k < nfields; ++k) {
+          for (k = 0; k < nfields; ++k) {
             mxArray* value = mxDuplicateArray(mxGetFieldByNumber(input,
                                                                  index,
                                                                  k));
@@ -511,7 +531,7 @@ static mxArray* Convert2DArrayToCellArray(const mxArray* input,
       }
       case mxCELL_CLASS: {
         element = mxCreateCellMatrix(1, dims[1]);
-        for (int j = 0; j < dims[1]; ++j) {
+        for (j = 0; j < dims[1]; ++j) {
           mwSize index = i + j * dims[0];
           mxSetCell(element, j, mxDuplicateArray(mxGetCell(input, index)));
         }
@@ -527,15 +547,18 @@ static mxArray* Convert2DArrayToCellArray(const mxArray* input,
       case mxINT64_CLASS:
       case mxUINT64_CLASS:
       case mxSINGLE_CLASS: {
+        mwSize element_size, stride;
+        void* input_data;
+        void* output_data;
         element = mxCreateNumericMatrix(1,
                                         dims[1],
                                         mxGetClassID(input),
                                         mxREAL);
-        mwSize element_size = mxGetElementSize(input);
-        mwSize stride = element_size * dims[0];
-        void* input_data = (void*)mxGetData(input) + i * element_size;
-        void* output_data = (void*)mxGetData(element);
-        for (int j = 0; j < dims[1]; ++j) {
+        element_size = mxGetElementSize(input);
+        stride = element_size * dims[0];
+        input_data = (void*)mxGetData(input) + i * element_size;
+        output_data = (void*)mxGetData(element);
+        for (j = 0; j < dims[1]; ++j) {
           memcpy(output_data, input_data, element_size);
           input_data += stride;
           output_data += element_size;
@@ -544,12 +567,15 @@ static mxArray* Convert2DArrayToCellArray(const mxArray* input,
       }
       case mxCHAR_CLASS: {
         mwSize char_dims[] = {1, dims[1]};
+        mwSize element_size, stride;
+        void* input_data;
+        void* output_data;
         element = mxCreateCharArray(2, char_dims);
-        mwSize element_size = mxGetElementSize(input);
-        mwSize stride = element_size * dims[0];
-        void* input_data = (void*)mxGetData(input) + i * element_size;
-        void* output_data = (void*)mxGetData(element);
-        for (int j = 0; j < dims[1]; ++j) {
+        element_size = mxGetElementSize(input);
+        stride = element_size * dims[0];
+        input_data = (void*)mxGetData(input) + i * element_size;
+        output_data = (void*)mxGetData(element);
+        for (j = 0; j < dims[1]; ++j) {
           memcpy(output_data, input_data, element_size);
           input_data += stride;
           output_data += element_size;
@@ -557,11 +583,14 @@ static mxArray* Convert2DArrayToCellArray(const mxArray* input,
         break;
       }
       case mxLOGICAL_CLASS: {
+        mwSize element_size, stride;
+        void* input_data;
+        void* output_data;
         element = mxCreateLogicalMatrix(1, dims[1]);
-        mwSize element_size = mxGetElementSize(input);
-        mwSize stride = element_size * dims[0];
-        void* input_data = (void*)mxGetData(input) + i * element_size;
-        void* output_data = (void*)mxGetData(element);
+        element_size = mxGetElementSize(input);
+        stride = element_size * dims[0];
+        input_data = (void*)mxGetData(input) + i * element_size;
+        output_data = (void*)mxGetData(element);
         for (int j = 0; j < dims[1]; ++j) {
           memcpy(output_data, input_data, element_size);
           input_data += stride;
@@ -668,23 +697,26 @@ static void CheckBSONObject(bson_iter_t* it,
   *object_size = 0;
   while (bson_iter_next(it)) {
     bson_type_t type = bson_iter_type(it);
+    const char* key;
+    const char* key_ptr;
+    bool is_digit;
     if (type == BSON_TYPE_EOD)
       break;
-    const char* key = bson_iter_key(it);
+    key = bson_iter_key(it);
     (*object_size)++;
-    // Keep key names for a struct array.
+    /* Keep key names for a struct array. */
     if (keys) {
       *keys = (const char**)mxRealloc(*keys,
                                       *object_size * sizeof(const char*));
       (*keys)[(*object_size) - 1] = key;
     }
-    // Check if it has an consistent index.
-    const char* key_ptr = key;
-    bool is_digit = true;
+    /* Check if it has an consistent index. */
+    key_ptr = key;
+    is_digit = true;
     while (*key_ptr != 0)
       is_digit &= (isdigit(*key_ptr++) > 0);
     is_array = (is_digit) ? is_array & (*object_size - 1 == atol(key)) : false;
-    // Check the array type from element.
+    /* Check the array type from element. */
     if (array_type) {
       switch (type) {
         case BSON_TYPE_DOUBLE:
@@ -726,9 +758,10 @@ static void CheckBSONObject(bson_iter_t* it,
  */
 static mxArray* ConvertBSONArrayToDoubleArray(bson_iter_t* it, int size) {
   mxArray* element = mxCreateDoubleMatrix(1, size, mxREAL);
+  double* output_data;
   if (!element)
     return NULL;
-  double* output_data = mxGetPr(element);
+  output_data = mxGetPr(element);
   while (bson_iter_next(it)) {
     bson_type_t type = bson_iter_type(it);
     switch (type) {
@@ -758,9 +791,10 @@ static mxArray* ConvertBSONArrayToDoubleArray(bson_iter_t* it, int size) {
  */
 static mxArray* ConvertBSONArrayToIntegerArray(bson_iter_t* it, int size) {
   mxArray* element = mxCreateNumericMatrix(1, size, mxINT32_CLASS, mxREAL);
+  int32_t* output_data;
   if (!element)
     return NULL;
-  int32_t* output_data = (int32_t*)mxGetData(element);
+  output_data = (int32_t*)mxGetData(element);
   while (bson_iter_next(it)) {
     bson_type_t type = bson_iter_type(it);
     switch (type) {
@@ -790,9 +824,10 @@ static mxArray* ConvertBSONArrayToIntegerArray(bson_iter_t* it, int size) {
  */
 static mxArray* ConvertBSONArrayToLongArray(bson_iter_t* it, int size) {
   mxArray* element = mxCreateNumericMatrix(1, size, mxINT64_CLASS, mxREAL);
+  int64_t* output_data;
   if (!element)
     return NULL;
-  int64_t* output_data = (int64_t*)mxGetData(element);
+  output_data = (int64_t*)mxGetData(element);
   while (bson_iter_next(it)) {
     bson_type_t type = bson_iter_type(it);
     switch (type) {
@@ -822,9 +857,10 @@ static mxArray* ConvertBSONArrayToLongArray(bson_iter_t* it, int size) {
  */
 static mxArray* ConvertBSONArrayToLogicalArray(bson_iter_t* it, int size) {
   mxArray* element = mxCreateLogicalMatrix(1, size);
+  mxLogical* output_data;
   if (!element)
     return NULL;
-  mxLogical* output_data = mxGetLogicals(element);
+  output_data = mxGetLogicals(element);
   while (bson_iter_next(it)) {
     bson_type_t type = bson_iter_type(it);
     switch (type) {
@@ -854,11 +890,12 @@ static mxArray* ConvertBSONArrayToLogicalArray(bson_iter_t* it, int size) {
  */
 static mxArray* ConvertBSONArrayToCellArray(bson_iter_t* it, int size) {
   mxArray* element = mxCreateCellMatrix(1, size);
-  if (!element)
-    return NULL;
   int index = 0;
   bool is_end = false;
-  for (int i = 0; i < size; ++i) {
+  int i;
+  if (!element)
+    return NULL;
+  for (i = 0; i < size; ++i) {
     mxArray* sub_element = ConvertNextToMxArray(it);
     if (!sub_element) {
       mxDestroyArray(element);
@@ -872,62 +909,63 @@ static mxArray* ConvertBSONArrayToCellArray(bson_iter_t* it, int size) {
 /** Convert keys to matlab-safe names.
  */
 static char** CreateSafeKeys(int size, const char* keys[]) {
-  char buffer[64]; // Matlab's variable can be up to 63 characters.
+  char buffer[64]; /* Matlab's variable can be up to 63 characters. */
   char** safe_keys = (char**)mxMalloc(size * sizeof(char*));
-  for (int i = 0; i < size; ++i) {
+  int i, j;
+  for (i = 0; i < size; ++i) {
     const char* input = keys[i];
     char* output = buffer;
+    bool duplicated;
+    int suffix = 0;
     memset(buffer, 0, 64 * sizeof(char));
-    // Special case: oid maps to "id_" field.
+    /* Special case: oid maps to "id_" field. */
     if (strcmp(input, "_id") == 0) {
       strcpy(output, "id_");
       output += strlen(output);
     }
     else {
-      // variable name: [a-zA-Z][a-zA-Z0-9_]*
-      // Trim leading non-alphanumeric.
+      /* variable name: [a-zA-Z][a-zA-Z0-9_]* */
+      /* Trim leading non-alphanumeric. */
       while (*input && !isalnum(*input))
         ++input;
-      // If starting from numeric, prepend 'x'.
+      /* If starting from numeric, prepend 'x'. */
       if (*input && isdigit(*input))
         *output++ = 'x';
       while (*input && output < &buffer[63]) {
         if (isalnum(*input))
           *output++ = *input++;
         else {
-          // Convert any consecutive non-alphanumeric to underscore.
+          /* Convert any consecutive non-alphanumeric to underscore. */
           *output++ = '_';
           while (*input && !isalnum(*input))
             ++input;
         }
       }
     }
-    // If empty, name it 'x'.
+    /* If empty, name it 'x'. */
     if (output == buffer)
       *output++ = 'x';
-    // Check if the name is duplicated. If it is, append a number.
-    bool duplicated;
-    int suffix = 0;
+    /* Check if the name is duplicated. If it is, append a number. */
     do {
       duplicated = false;
-      for (int j = 0; j < i; ++j)
+      for (j = 0; j < i; ++j)
         duplicated |= (strcmp(safe_keys[j], buffer) == 0);
       if (duplicated) {
-        // Append a suffix if duplicated.
+        /* Append a suffix if duplicated. */
         char suffix_buffer[32];
         int length = sprintf(suffix_buffer, "%d", suffix++);
         if (output + length < &buffer[31])
           strcpy(output, suffix_buffer);
         else {
-          // No resolution to the name collision...
-          for (int j = 0; j < i; ++j)
+          /* No resolution to the name collision... */
+          for (j = 0; j < i; ++j)
             mxFree(safe_keys[j]);
           mxFree(safe_keys);
           return NULL;
         }
       }
     } while (duplicated);
-    // Copy the safe key name.
+    /* Copy the safe key name. */
     safe_keys[i] = (char*)mxCalloc(strlen(buffer)+1, sizeof(char));
     strcpy(safe_keys[i], buffer);
   }
@@ -937,7 +975,8 @@ static char** CreateSafeKeys(int size, const char* keys[]) {
 /** Delete keys.
  */
 static void DestroySafekeys(int size, char** keys) {
-  for (int i = 0; i < size; ++i)
+  int i;
+  for (i = 0; i < size; ++i)
     mxFree(keys[i]);
   mxFree(keys);
 }
@@ -948,17 +987,19 @@ static mxArray* ConvertBSONArrayToStructArray(bson_iter_t* it,
                                               int size,
                                               const char** keys) {
   char** safe_keys = CreateSafeKeys(size, keys);
+  int index = 0;
+  mxArray* element;
+  int i;
   if (!safe_keys)
     return NULL;
-  mxArray* element = mxCreateStructMatrix(1,
-                                          1,
-                                          size,
-                                          (const char**)safe_keys);
+  element = mxCreateStructMatrix(1,
+                                 1,
+                                 size,
+                                 (const char**)safe_keys);
   DestroySafekeys(size, safe_keys);
   if (!element)
     return NULL;
-  int index = 0;
-  for (int i = 0; i < size; ++i) {
+  for (i = 0; i < size; ++i) {
     mxArray* sub_element = ConvertNextToMxArray(it);
     if (!sub_element) {
       mxDestroyArray(element);
@@ -977,21 +1018,24 @@ static void MergeNumericArrays(mxArray** array) {
   mxClassID class_id = mxGetClassID(element);
   mwSize ndims = mxGetNumberOfDimensions(element);
   const mwSize* dims = mxGetDimensions(element);
+  mxArray* new_array = NULL;
+  int i;
   if (ndims < 2)
     return;
-  mxArray* new_array = NULL;
   if (dims[0] == 1) {
-    // Stack row vectors.
+    size_t value_size, element_size;
+    /* Stack row vectors. */
     new_array = mxCreateNumericMatrix(size, dims[1], class_id, mxREAL);
     if (!new_array)
       return;
-    size_t value_size = mxGetNumberOfElements(element);
-    size_t element_size = mxGetElementSize(element);
-    for (int i = 0; i < size; ++i) {
+    value_size = mxGetNumberOfElements(element);
+    element_size = mxGetElementSize(element);
+    for (i = 0; i < size; ++i) {
       mxArray* value = mxGetCell(*array, i);
       void* input = (void*)mxGetData(value);
       void* output = (void*)mxGetData(new_array) + i * element_size;
-      for (int j = 0; j < value_size; ++j) {
+      int j;
+      for (j = 0; j < value_size; ++j) {
         memcpy(output, input, element_size);
         input += element_size;
         output += size * element_size;
@@ -999,16 +1043,17 @@ static void MergeNumericArrays(mxArray** array) {
     }
   }
   else {
-    // Expand the last dimension.
+    /* Expand the last dimension. */
     mwSize* new_dims = (mwSize*)mxMalloc((ndims + 1) * sizeof(mwSize));
+    size_t stride;
     memcpy(new_dims, dims, ndims * sizeof(mwSize));
     new_dims[ndims] = size;
     new_array = mxCreateNumericArray(ndims + 1, new_dims, class_id, mxREAL);
     mxFree(new_dims);
     if (!new_array)
       return;
-    size_t stride = mxGetNumberOfElements(element) * mxGetElementSize(element);
-    for (int i = 0; i < size; ++i) {
+    stride = mxGetNumberOfElements(element) * mxGetElementSize(element);
+    for (i = 0; i < size; ++i) {
       mxArray* value = mxGetCell(*array, i);
       memcpy(mxGetData(new_array) + i * stride, mxGetData(value), stride);
     }
@@ -1025,33 +1070,35 @@ static void MergeCellArrays(mxArray** array) {
   mxClassID class_id = mxGetClassID(element);
   mwSize ndims = mxGetNumberOfDimensions(element);
   const mwSize* dims = mxGetDimensions(element);
+  mxArray* new_array = NULL;
+  int i, j;
   if (ndims < 2)
     return;
-  mxArray* new_array = NULL;
   if (ndims == 2 && dims[0] == 1) {
-    // Stack row vectors.
+    /* Stack row vectors. */
     new_array = mxCreateCellMatrix(size, dims[1]);
     if (!new_array)
       return;
-    for (int i = 0; i < size; ++i) {
+    for (i = 0; i < size; ++i) {
       mxArray* value = mxGetCell(*array, i);
-      for (int j = 0; j < dims[1]; ++j)
+      for (j = 0; j < dims[1]; ++j)
         mxSetCell(new_array,
                   i + j * size,
                   mxDuplicateArray(mxGetCell(value, j)));
     }
   }
   else {
-    // Expand the last dimension.
+    /* Expand the last dimension. */
     mwSize* new_dims = (mwSize*)mxMalloc(sizeof(mwSize) * (ndims + 1));
+    mwSize element_size;
     memcpy(new_dims, dims, sizeof(mwSize) * ndims);
     new_dims[ndims] = size;
     new_array = mxCreateCellArray(ndims + 1, new_dims);
     mxFree(new_dims);
-    mwSize element_size = mxGetNumberOfElements(element);
-    for (int i = 0; i < size; ++i) {
+    element_size = mxGetNumberOfElements(element);
+    for (i = 0; i < size; ++i) {
       mxArray* value = mxGetCell(*array, i);
-      for (int j = 0; j < element_size; ++j) {
+      for (j = 0; j < element_size; ++j) {
         mxSetCell(new_array,
                   j + i * element_size,
                   mxDuplicateArray(mxGetCell(value, j)));
@@ -1070,20 +1117,22 @@ static void MergeStructArrays(mxArray** array) {
   mxClassID class_id = mxGetClassID(element);
   mwSize ndims = mxGetNumberOfDimensions(element);
   const mwSize* dims = mxGetDimensions(element);
+  mxArray* new_array = NULL;
+  int num_fields;
+  int i, j, k;
+  const char** fields;
+  bool mergeable = true;
   if (ndims < 2)
     return;
-  mxArray* new_array = NULL;
-  // Check if all fields are the same.
-  int num_fields = mxGetNumberOfFields(element);
-  const char** fields = (const char**)mxMalloc(
-      sizeof(const char*) * num_fields);
-  for (int i = 0; i < num_fields; ++i)
+  /* Check if all fields are the same. */
+  num_fields = mxGetNumberOfFields(element);
+  fields = (const char**)mxMalloc(sizeof(const char*) * num_fields);
+  for (i = 0; i < num_fields; ++i)
     fields[i] = mxGetFieldNameByNumber(element, i);
-  bool mergeable = true;
-  for (int i = 1; i < size; ++i) {
+  for (i = 1; i < size; ++i) {
     mxArray* value = mxGetCell(*array, i);
     if (mxGetNumberOfFields(value) == num_fields)
-      for (int k = 0; k < num_fields; ++k)
+      for (k = 0; k < num_fields; ++k)
         mergeable &= strcmp(fields[k], mxGetFieldNameByNumber(value, k)) == 0;
     else
       mergeable = false;
@@ -1093,44 +1142,45 @@ static void MergeStructArrays(mxArray** array) {
     return;
   }
   if (ndims == 2 && dims[0] == 1 && dims[1] == 1) {
-    // Concatenate into a row vector.
+    /* Concatenate into a row vector. */
     new_array = mxCreateStructMatrix(1, size, num_fields, fields);
     if (!new_array)
       return;
-    for (int i = 0; i < size; ++i) {
+    for (i = 0; i < size; ++i) {
       mxArray* value = mxGetCell(*array, i);
-      for (int k = 0; k < num_fields; ++k) {
+      for (k = 0; k < num_fields; ++k) {
         mxArray* field = mxDuplicateArray(mxGetFieldByNumber(value, 0, k));
         mxSetFieldByNumber(new_array, i, k, field);
       }
     }
   }
   else if (ndims == 2 && dims[0] == 1) {
-    // Stack row vectors.
+    /* Stack row vectors. */
     new_array = mxCreateStructMatrix(size, dims[1], num_fields, fields);
     if (!new_array)
       return;
-    for (int i = 0; i < size; ++i) {
+    for (i = 0; i < size; ++i) {
       mxArray* value = mxGetCell(*array, i);
-      for (int j = 0; j < dims[1]; ++j)
-        for (int k = 0; k < num_fields; ++k) {
+      for (j = 0; j < dims[1]; ++j)
+        for (k = 0; k < num_fields; ++k) {
           mxArray* field = mxDuplicateArray(mxGetFieldByNumber(value, j, k));
           mxSetFieldByNumber(new_array, i + j * size, k, field);
         }
     }
   }
   else {
-    // Expand the last dimension.
+    /* Expand the last dimension. */
     mwSize* new_dims = (mwSize*)mxMalloc(sizeof(mwSize) * (ndims + 1));
+    mwSize element_size;
     memcpy(new_dims, dims, sizeof(mwSize) * ndims);
     new_dims[ndims] = size;
     new_array = mxCreateStructArray(ndims + 1, new_dims, num_fields, fields);
     mxFree(new_dims);
-    mwSize element_size = mxGetNumberOfElements(element);
-    for (int i = 0; i < size; ++i) {
+    element_size = mxGetNumberOfElements(element);
+    for (i = 0; i < size; ++i) {
       mxArray* value = mxGetCell(*array, i);
-      for (int j = 0; j < element_size; ++j)
-        for (int k = 0; k < num_fields; ++k) {
+      for (j = 0; j < element_size; ++j)
+        for (k = 0; k < num_fields; ++k) {
           mxArray* field = mxDuplicateArray(mxGetFieldByNumber(value, j, k));
           mxSetFieldByNumber(new_array, j + i * element_size, k, field);
         }
@@ -1149,14 +1199,16 @@ static void MergeDateArrays(mxArray** array) {
   mxClassID class_id = mxGetClassID(element);
   mwSize ndims = mxGetNumberOfDimensions(element);
   const mwSize* dims = mxGetDimensions(element);
+  mxArray* new_array = NULL;
+  int dimension;
+  int i;
   if (ndims < 2)
     return;
-  mxArray* new_array = NULL;
-  int dimension = (ndims == 2 && dims[0] == 1 && dims[1] == 1) ? 2 :
-                  (ndims == 2 && dims[0] == 1) ? 1 : ndims;
+  dimension = (ndims == 2 && dims[0] == 1 && dims[1] == 1) ? 2 :
+              (ndims == 2 && dims[0] == 1) ? 1 : ndims;
   mxArray** rhs = (mxArray**)mxMalloc(sizeof(mxArray*) * (1 + size));
   rhs[0] = mxCreateDoubleScalar(2);
-  for (int i = 0; i < size; ++i)
+  for (i = 0; i < size; ++i)
     rhs[i + 1] = mxGetCell(*array, i);
   mexCallMATLAB(1, &new_array, (1 + size), rhs, "cat");
   mxDestroyArray(rhs[0]);
@@ -1165,18 +1217,26 @@ static void MergeDateArrays(mxArray** array) {
   *array = new_array;
 }
 
-void TryMergeCellToNDArray(mxArray** array) {
+/** Try to merge cell array to N-D array in place.
+ * @param array mxArray to be merged into N-D.
+ */
+static void TryMergeCellToNDArray(mxArray** array) {
   int size = mxGetNumberOfElements(*array);
+  mxArray* element;
+  mxClassID class_id;
+  mwSize ndims;
+  const mwSize* dims;
+  bool mergeable = true;
+  int i;
   if (!size)
     return;
-  // Get the type information about the first element.
-  mxArray* element = mxGetCell(*array, 0);
-  mxClassID class_id = mxGetClassID(element);
-  mwSize ndims = mxGetNumberOfDimensions(element);
-  const mwSize* dims = mxGetDimensions(element);
-  // Scan the rest of elements.
-  bool mergeable = true;
-  for (int i = 1; i < size; ++i) {
+  /* Get the type information about the first element. */
+  element = mxGetCell(*array, 0);
+  class_id = mxGetClassID(element);
+  ndims = mxGetNumberOfDimensions(element);
+  dims = mxGetDimensions(element);
+  /* Scan the rest of elements. */
+  for (i = 1; i < size; ++i) {
     element = mxGetCell(*array, i);
     mergeable &= class_id == mxGetClassID(element) &&
         ndims == mxGetNumberOfDimensions(element) &&
@@ -1189,7 +1249,7 @@ void TryMergeCellToNDArray(mxArray** array) {
     case mxLOGICAL_CLASS:
       MergeNumericArrays(array);
       break;
-    //case mxCHAR_CLASS: // Let's not merge strings to an N-D array.
+    /*case mxCHAR_CLASS: Let's not merge strings to an N-D array. */
     case mxCELL_CLASS:
       MergeCellArrays(array);
       break;
@@ -1203,18 +1263,22 @@ void TryMergeCellToNDArray(mxArray** array) {
   }
 }
 
-/** Convert a BSON array to an appropriate MxArray type.
+/** Convert bson iterator to mxArray*. The iterator must be pointing to a BSON
+ * array.
+ * @param it bson iterator to convert to mxArray.
+ * @param output mxArray to be created.
+ * @return Newly allocated mxArray, or NULL if unsuccessful.
  */
-mxArray* ConvertBSONIteratorToMxArray(bson_iter_t* it) {
+static mxArray* ConvertBSONIteratorToMxArray(bson_iter_t* it) {
   mxArray* element = NULL;
   bson_iter_t iterator_copy = *it;
-  // Check the array type.
+  /* Check the array type. */
   int object_size, array_type;
   const char** keys = NULL;
   CheckBSONObject(&iterator_copy, &object_size, &keys, &array_type);
   if (!keys)
     return NULL;
-  // Convert.
+  /* Convert. */
   switch (array_type) {
     case mxDOUBLE_CLASS:
       element = ConvertBSONArrayToDoubleArray(it, object_size);
@@ -1245,7 +1309,7 @@ mxArray* ConvertBSONIteratorToMxArray(bson_iter_t* it) {
       break;
   }
   mxFree(keys);
-  // Merge a cell array to N-D array if possible.
+  /* Merge a cell array to N-D array if possible. */
   if (array_type == mxCELL_CLASS)
     TryMergeCellToNDArray(&element);
   return element;
@@ -1255,9 +1319,10 @@ mxArray* ConvertBSONIteratorToMxArray(bson_iter_t* it) {
  */
 static mxArray* ConvertNextToMxArray(bson_iter_t* it) {
   mxArray* element = NULL;
+  bson_type_t type;
   if (!bson_iter_next(it))
     return NULL;
-  bson_type_t type = bson_iter_type(it);
+  type = bson_iter_type(it);
   switch (type) {
     case BSON_TYPE_EOD:
       break;
@@ -1334,8 +1399,8 @@ static mxArray* ConvertNextToMxArray(bson_iter_t* it) {
       element = mxCreateNumericMatrix(1, 1, mxINT64_CLASS, mxREAL);
       *(int64_t*)mxGetData(element) = bson_iter_int64(it);
       break;
-    //case BSON_UNDEFINED:
-    //case BSON_DBREF:
+    /* case BSON_UNDEFINED: */
+    /* case BSON_DBREF: */
     default:
       break;
   }
