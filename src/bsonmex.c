@@ -415,12 +415,13 @@ static mxArray* ConvertNDArrayToCellArray(const mxArray* input,
         int nfields = mxGetNumberOfFields(input);
         const char** fields = (const char**)mxMalloc(
             sizeof(const char*) * nfields);
-        for (int k = 0; k < nfields; ++k)
+        int k;
+        for (k = 0; k < nfields; ++k)
           fields[k] = mxGetFieldNameByNumber(input, k);
         element = mxCreateStructArray(ndims - 1, dims, nfields, fields);
-        for (int j = 0; j < num_elements; ++j) {
+        for (j = 0; j < num_elements; ++j) {
           mwSize index = j + i * num_elements;
-          for (int k = 0; k < nfields; ++k) {
+          for (k = 0; k < nfields; ++k) {
             mxArray* value = mxDuplicateArray(mxGetFieldByNumber(input,
                                                                  index,
                                                                  k));
@@ -591,7 +592,7 @@ static mxArray* Convert2DArrayToCellArray(const mxArray* input,
         stride = element_size * dims[0];
         input_data = (void*)mxGetData(input) + i * element_size;
         output_data = (void*)mxGetData(element);
-        for (int j = 0; j < dims[1]; ++j) {
+        for (j = 0; j < dims[1]; ++j) {
           memcpy(output_data, input_data, element_size);
           input_data += stride;
           output_data += element_size;
@@ -1407,7 +1408,7 @@ static mxArray* ConvertNextToMxArray(bson_iter_t* it) {
   return element;
 }
 
-bool ConvertMxArrayToBSON(const mxArray* input, bson_t* output) {
+EXTERN_C bool ConvertMxArrayToBSON(const mxArray* input, bson_t* output) {
   bson_init(output);
   if (!ConvertArrayToBSON(input, NULL, output)) {
     bson_destroy(output);
@@ -1416,7 +1417,7 @@ bool ConvertMxArrayToBSON(const mxArray* input, bson_t* output) {
   return true;
 }
 
-bool ConvertBSONToMxArray(const bson_t* input, mxArray** output) {
+EXTERN_C bool ConvertBSONToMxArray(const bson_t* input, mxArray** output) {
   bson_iter_t it;
   if (bson_iter_init(&it, input) == TRUE)
     *output = ConvertBSONIteratorToMxArray(&it);
