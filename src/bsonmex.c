@@ -1355,6 +1355,9 @@ static mxArray* ConvertNextToMxArray(bson_iter_t* it) {
       memcpy(mxGetData(element), binary, element_size);
       break;
     }
+    case BSON_TYPE_UNDEFINED:
+      element = mxCreateDoubleScalar(mxGetNaN());
+      break;
     case BSON_TYPE_OID: {
       char oid_string[25];
       bson_oid_to_string(bson_iter_oid(it), oid_string);
@@ -1373,10 +1376,7 @@ static mxArray* ConvertNextToMxArray(bson_iter_t* it) {
       break;
     }
     case BSON_TYPE_NULL:
-    case BSON_TYPE_UNDEFINED:
     case BSON_TYPE_DBPOINTER:
-    case BSON_TYPE_MAXKEY: /* No bson API. */
-    case BSON_TYPE_MINKEY: /* No bson API. */
       element = mxCreateDoubleMatrix(0, 0, mxREAL);
       break;
     case BSON_TYPE_REGEX:
@@ -1402,6 +1402,12 @@ static mxArray* ConvertNextToMxArray(bson_iter_t* it) {
     case BSON_TYPE_INT64:
       element = mxCreateNumericMatrix(1, 1, mxINT64_CLASS, mxREAL);
       *(int64_t*)mxGetData(element) = bson_iter_int64(it);
+      break;
+    case BSON_TYPE_MAXKEY:
+      element = mxCreateDoubleScalar(mxGetInf());
+      break;
+    case BSON_TYPE_MINKEY:
+      element = mxCreateDoubleScalar(-mxGetInf());
       break;
     default:
       break;
