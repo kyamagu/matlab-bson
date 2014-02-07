@@ -77,8 +77,11 @@ function config = parse_options(varargin)
   end
   compiler_flags = sprintf(' %s', varargin{~mark_for_delete});
   if isunix
-    compiler_flags = sprintf(' -lrt CFLAGS="$CFLAGS -fPIC"%s', ...
+    compiler_flags = sprintf(' CFLAGS="$CFLAGS -fPIC"%s', ...
                              compiler_flags);
+    if ~ismac
+      compiler_flags = sprintf(' -lrt %s', compiler_flags);
+    end
   end
   config.compiler_flags = compiler_flags;
 end

@@ -1364,7 +1364,19 @@ static mxArray* ConvertNextToMxArray(bson_iter_t* it) {
     case BSON_TYPE_BOOL:
       element = mxCreateLogicalScalar(bson_iter_bool(it));
       break;
+    case BSON_TYPE_DATE_TIME: {
+      bson_int64_t date_value = bson_iter_date_time(it);
+      mxArray* date_number = mxCreateDoubleScalar(
+          ((double)date_value / 86400.0) + 719529);
+      mexCallMATLAB(1, &element, 1, &date_number, "bson.datetime");
+      mxDestroyArray(date_number);
+      break;
+    }
     case BSON_TYPE_NULL:
+    case BSON_TYPE_UNDEFINED:
+    case BSON_TYPE_DBPOINTER:
+    case BSON_TYPE_MAXKEY: /* No bson API. */
+    case BSON_TYPE_MINKEY: /* No bson API. */
       element = mxCreateDoubleMatrix(0, 0, mxREAL);
       break;
     case BSON_TYPE_REGEX:
@@ -1379,14 +1391,6 @@ static mxArray* ConvertNextToMxArray(bson_iter_t* it) {
     case BSON_TYPE_INT32:
       element = mxCreateDoubleScalar(bson_iter_int32(it));
       break;
-    case BSON_TYPE_DATE_TIME: {
-      bson_int64_t date_value = bson_iter_date_time(it);
-      mxArray* date_number = mxCreateDoubleScalar(
-          ((double)date_value / 86400.0) + 719529);
-      mexCallMATLAB(1, &element, 1, &date_number, "bson.datetime");
-      mxDestroyArray(date_number);
-      break;
-    }
     case BSON_TYPE_TIMESTAMP: {
       time_t time_value = bson_iter_time_t(it);
       mxArray* date_number = mxCreateDoubleScalar(
@@ -1399,8 +1403,6 @@ static mxArray* ConvertNextToMxArray(bson_iter_t* it) {
       element = mxCreateNumericMatrix(1, 1, mxINT64_CLASS, mxREAL);
       *(int64_t*)mxGetData(element) = bson_iter_int64(it);
       break;
-    /* case BSON_UNDEFINED: */
-    /* case BSON_DBREF: */
     default:
       break;
   }
