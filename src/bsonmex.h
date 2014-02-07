@@ -8,6 +8,7 @@
 
 #include "bson.h"
 #include <matrix.h>
+#include <stdbool.h>
 
 /** Convert mxArray* to bson.
  * @param input mxArray to convert to bson.
