@@ -3,18 +3,30 @@ Matlab BSON
 
 Matlab BSON encoder based on [libbson](https://github.com/mongodb/libbson).
 
+[BSON](http://bsonspec.org/) is a bin­ary-en­coded seri­al­iz­a­tion of
+JSON-like doc­u­ments. This package contains API to convert Matlab variables
+to and from BSON binary. It is useful for exchanging data with Matlab and
+other programs written in different language.
+
 Build
 -----
 
-A UNIX environment is required to use the package. Also `mex -setup` if you
-have never used `mex` command in Matlab.
+A UNIX environment is required to build the package. Get necessary tools to
+build libbson (automake, autoconf, libtool, gcc, make). If you don't have
+libbson installed in the system, you need the Internet connection to download
+the libbson package. Also `mex -setup` if you have never used `mex` command in
+Matlab.
+
+Once all the requirements are met, type the following in Matlab to build. This
+will automatically download and compile the libbson package to build the Matlab
+API.
 
 ```Matlab
 addpath /path/to/matlab-bson;
 bson.make;
 ```
 
-Check `help bson.make` for detail.
+Check `help bson.make` for the detailed instruction.
 
 Example
 -------
@@ -43,4 +55,4 @@ API
     decode    Deserialize value from BSON format.
     encode    Serialize value in BSON format.
     make      Build a driver mex file.
-    validate  Validates the BSON format.
+    validate  Validates BSON format.

@@ -1,5 +1,5 @@
 function flag = validate(bson_value, varargin)
-%VALIDATE Validates the BSON format.
+%VALIDATE Validates BSON format.
 %
 %    flag = bson.validate(bson_value, ...)
 %
