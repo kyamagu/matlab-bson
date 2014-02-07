@@ -1,5 +1,5 @@
 function write(value, filename, varargin)
-%WRITE WRITE variable as a BSON file.
+%WRITE Write variable to a BSON file.
 %
 %    bson.write(value, filename)
 %

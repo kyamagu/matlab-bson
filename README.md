@@ -55,4 +55,8 @@ API
     decode    Deserialize value from BSON format.
     encode    Serialize value in BSON format.
     make      Build a driver mex file.
+    read      Read bson from file.
     validate  Validates BSON format.
+    write     Write variable to a BSON file.
+
+Check `help bson` for detail.
