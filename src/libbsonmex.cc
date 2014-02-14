@@ -20,7 +20,7 @@ namespace {
  * @return bson_t* value. Caller must destroy the returned bson.
  */
 bson_t* CreateBSON(const mxArray* input) {
-  const bson_uint8_t* data = reinterpret_cast<bson_uint8_t*>(mxGetData(input));
+  const uint8_t* data = reinterpret_cast<uint8_t*>(mxGetData(input));
   bson_t* value = bson_new_from_data(data, mxGetNumberOfElements(input));
   if (!value)
     mexErrMsgIdAndTxt("bsonmex:error", "Invalid BSON data.");

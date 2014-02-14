@@ -25,16 +25,16 @@ static bool ConvertBinaryArrayToBSON(const mxArray* input,
   size_t num_elements = mxGetNumberOfElements(input);
   uint8_t* values = (uint8_t*)mxGetData(input);
   int length = 0;
-  const bson_uint8_t* data;
+  const uint8_t* data;
   if (num_elements == 0)
-    return BSON_APPEND_NULL(output, (name) ? name : "0") == TRUE;
-  data = (const bson_uint8_t*)mxGetData(input);
+    return BSON_APPEND_NULL(output, (name) ? name : "0");
+  data = (const uint8_t*)mxGetData(input);
   length = mxGetNumberOfElements(input);
   return BSON_APPEND_BINARY(output,
                             (name) ? name : "0",
                             BSON_SUBTYPE_BINARY,
                             data,
-                            length) == TRUE;
+                            length);
 }
 
 /** Convert mxArray to BSON int array.
@@ -48,22 +48,22 @@ static bool ConvertShortArrayToBSON(const mxArray* input,
   bson_t array;
   int i;
   if (num_elements == 0)
-    return BSON_APPEND_NULL(output, (name) ? name : "0") == TRUE;
+    return BSON_APPEND_NULL(output, (name) ? name : "0");
   if (num_elements == 1)
     return BSON_APPEND_INT32(output, (name) ? name : "0", values[0]) ==
-           TRUE;
-  if (name && bson_append_array_begin(output,
-                                      name,
-                                      (int)strlen(name),
-                                      &array) != TRUE)
+           true;
+  if (name && !bson_append_array_begin(output,
+                                       name,
+                                       (int)strlen(name),
+                                       &array))
     return false;
   for (i = 0; i < num_elements; ++i) {
     if (sprintf(key, "%d", i) < 0)
       return false;
-    if (BSON_APPEND_INT32((name) ? &array : output, key, values[i]) != TRUE)
+    if (!BSON_APPEND_INT32((name) ? &array : output, key, values[i]))
       return false;
   }
-  if (name && bson_append_array_end(output, &array) != TRUE)
+  if (name && !bson_append_array_end(output, &array))
     return false;
   return true;
 }
@@ -79,22 +79,22 @@ static bool ConvertIntegerArrayToBSON(const mxArray* input,
   bson_t array;
   int i;
   if (num_elements == 0)
-    return BSON_APPEND_NULL(output, (name) ? name : "0") == TRUE;
+    return BSON_APPEND_NULL(output, (name) ? name : "0");
   if (num_elements == 1)
     return BSON_APPEND_INT32(output, (name) ? name : "0", values[0]) ==
-           TRUE;
-  if (name && bson_append_array_begin(output,
-                                      name,
-                                      (int)strlen(name),
-                                      &array) != TRUE)
+           true;
+  if (name && !bson_append_array_begin(output,
+                                       name,
+                                       (int)strlen(name),
+                                       &array))
     return false;
   for (i = 0; i < num_elements; ++i) {
     if (sprintf(key, "%d", i) < 0)
       return false;
-    if (BSON_APPEND_INT32((name) ? &array : output, key, values[i]) != TRUE)
+    if (!BSON_APPEND_INT32((name) ? &array : output, key, values[i]))
       return false;
   }
-  if (name && bson_append_array_end(output, &array) != TRUE)
+  if (name && !bson_append_array_end(output, &array))
     return false;
   return true;
 }
@@ -110,22 +110,22 @@ static bool ConvertLongArrayToBSON(const mxArray* input,
   bson_t array;
   int i;
   if (num_elements == 0)
-    return BSON_APPEND_NULL(output, (name) ? name : "0") == TRUE;
+    return BSON_APPEND_NULL(output, (name) ? name : "0");
   if (num_elements == 1)
     return BSON_APPEND_INT64(output, (name) ? name : "0", values[0]) ==
-           TRUE;
-  if (name && bson_append_array_begin(output,
-                                      name,
-                                      (int)strlen(name),
-                                      &array) != TRUE)
+           true;
+  if (name && !bson_append_array_begin(output,
+                                       name,
+                                       (int)strlen(name),
+                                       &array))
     return false;
   for (i = 0; i < num_elements; ++i) {
     if (sprintf(key, "%d", i) < 0)
       return false;
-    if (BSON_APPEND_INT64((name) ? &array : output, key, values[i]) != TRUE)
+    if (!BSON_APPEND_INT64((name) ? &array : output, key, values[i]))
       return false;
   }
-  if (name && bson_append_array_end(output, &array) != TRUE)
+  if (name && !bson_append_array_end(output, &array))
     return false;
   return true;
 }
@@ -141,22 +141,22 @@ static bool ConvertLogicalArrayToBSON(const mxArray* input,
   bson_t array;
   int i;
   if (num_elements == 0)
-    return BSON_APPEND_NULL(output, (name) ? name : "0") == TRUE;
+    return BSON_APPEND_NULL(output, (name) ? name : "0");
   if (num_elements == 1)
     return BSON_APPEND_BOOL(output, (name) ? name : "0", values[0]) ==
-           TRUE;
-  if (name && bson_append_array_begin(output,
-                                      name,
-                                      (int)strlen(name),
-                                      &array) != TRUE)
+           true;
+  if (name && !bson_append_array_begin(output,
+                                       name,
+                                       (int)strlen(name),
+                                       &array))
     return false;
   for (i = 0; i < num_elements; ++i) {
     if (sprintf(key, "%d", i) < 0)
       return false;
-    if (BSON_APPEND_BOOL((name) ? &array : output, key, values[i]) != TRUE)
+    if (!BSON_APPEND_BOOL((name) ? &array : output, key, values[i]))
       return false;
   }
-  if (name && bson_append_array_end(output, &array) != TRUE)
+  if (name && !bson_append_array_end(output, &array))
     return false;
   return true;
 }
@@ -180,7 +180,7 @@ static bool ConvertCharArrayToBSON(const mxArray* input,
                             (name) ? name : "0",
                             (int)strlen((name) ? name : "0"),
                             value,
-                            length) == TRUE;
+                            length);
   mxDestroyArray(prhs[1]);
   mxDestroyArray(converted_input);
   return status;
@@ -197,22 +197,22 @@ static bool ConvertFloatArrayToBSON(const mxArray* input,
   bson_t array;
   int i;
   if (num_elements == 0)
-    return BSON_APPEND_NULL(output, (name) ? name : "0") == TRUE;
+    return BSON_APPEND_NULL(output, (name) ? name : "0");
   if (num_elements == 1)
     return BSON_APPEND_DOUBLE(output, (name) ? name : "0", values[0]) ==
-           TRUE;
-  if (name && bson_append_array_begin(output,
-                                      name,
-                                      (int)strlen(name),
-                                      &array) != TRUE)
+           true;
+  if (name && !bson_append_array_begin(output,
+                                       name,
+                                       (int)strlen(name),
+                                       &array))
     return false;
   for (i = 0; i < num_elements; ++i) {
     if (sprintf(key, "%d", i) < 0)
       return false;
-    if (BSON_APPEND_DOUBLE((name) ? &array : output, key, values[i]) != TRUE)
+    if (!BSON_APPEND_DOUBLE((name) ? &array : output, key, values[i]))
       return false;
   }
-  if (name && bson_append_array_end(output, &array) != TRUE)
+  if (name && !bson_append_array_end(output, &array))
     return false;
   return true;
 }
@@ -228,22 +228,22 @@ static bool ConvertDoubleArrayToBSON(const mxArray* input,
   bson_t array;
   int i;
   if (num_elements == 0)
-    return BSON_APPEND_NULL(output, (name) ? name : "0") == TRUE;
+    return BSON_APPEND_NULL(output, (name) ? name : "0");
   if (num_elements == 1)
     return BSON_APPEND_DOUBLE(output, (name) ? name : "0", values[0]) ==
-           TRUE;
-  if (name && bson_append_array_begin(output,
-                                      name,
-                                      (int)strlen(name),
-                                      &array) != TRUE)
+           true;
+  if (name && !bson_append_array_begin(output,
+                                       name,
+                                       (int)strlen(name),
+                                       &array))
     return false;
   for (i = 0; i < num_elements; ++i) {
     if (sprintf(key, "%d", i) < 0)
       return false;
-    if (BSON_APPEND_DOUBLE((name) ? &array : output, key, values[i]) != TRUE)
+    if (!BSON_APPEND_DOUBLE((name) ? &array : output, key, values[i]))
       return false;
   }
-  if (name && bson_append_array_end(output, &array) != TRUE)
+  if (name && !bson_append_array_end(output, &array))
     return false;
   return true;
 }
@@ -258,36 +258,36 @@ static bool ConvertDateArrayToBSON(const mxArray* input,
   bson_t array;
   int i;
   if (num_elements == 0)
-    return BSON_APPEND_NULL(output, (name) ? name : "0") == TRUE;
+    return BSON_APPEND_NULL(output, (name) ? name : "0");
   if (num_elements == 1) {
     mxArray* value = mxGetProperty(input, 0, "number");
-    bson_int64_t date_value;
+    int64_t date_value;
     if (!value)
       return false;
-    date_value = (bson_int64_t)((mxGetScalar(value) - 719529) * 86400);
+    date_value = (int64_t)((mxGetScalar(value) - 719529) * 86400);
     return BSON_APPEND_DATE_TIME(output, (name) ? name : "0", date_value) ==
-           TRUE;
+           true;
   }
-  if (name && bson_append_array_begin(output,
-                                      name,
-                                      (int)strlen(name),
-                                      &array) != TRUE)
+  if (name && !bson_append_array_begin(output,
+                                       name,
+                                       (int)strlen(name),
+                                       &array))
     return false;
   for (i = 0; i < num_elements; ++i) {
     mxArray* value;
-    bson_int64_t date_value;
+    int64_t date_value;
     if (sprintf(key, "%d", i) < 0)
       return false;
     value = mxGetProperty(input, i, "number");
     if (!value)
       return false;
-    date_value = (bson_int64_t)((mxGetScalar(value) - 719529) * 86400);
-    if (BSON_APPEND_DATE_TIME((name) ? &array : output,
-                              key,
-                              date_value) != TRUE)
+    date_value = (int64_t)((mxGetScalar(value) - 719529) * 86400);
+    if (!BSON_APPEND_DATE_TIME((name) ? &array : output,
+                               key,
+                               date_value))
       return false;
   }
-  if (name && bson_append_array_end(output, &array) != TRUE)
+  if (name && !bson_append_array_end(output, &array))
     return false;
   return true;
 }
@@ -301,10 +301,10 @@ static bool ConvertCellArrayToBSON(const mxArray* input,
   size_t num_elements = mxGetNumberOfElements(input);
   bson_t array;
   int i;
-  if (name && bson_append_array_begin(output,
-                                      name,
-                                      (int)strlen(name),
-                                      &array) != TRUE)
+  if (name && !bson_append_array_begin(output,
+                                       name,
+                                       (int)strlen(name),
+                                       &array))
     return false;
   for (i = 0; i < num_elements; ++i) {
     mxArray* element = mxGetCell(input, i);
@@ -313,7 +313,7 @@ static bool ConvertCellArrayToBSON(const mxArray* input,
     if (!ConvertArrayToBSON(element, key, (name) ? &array : output))
       return false;
   }
-  if (name && bson_append_array_end(output, &array) != TRUE)
+  if (name && !bson_append_array_end(output, &array))
     return false;
   return true;
 }
@@ -326,7 +326,7 @@ static bool ConvertStringToOID(const mxArray* element,
   bson_oid_t oid;
   bson_oid_init_from_string(&oid, value);
   mxFree(value);
-  return BSON_APPEND_OID(output, "_id", &oid) == TRUE;
+  return BSON_APPEND_OID(output, "_id", &oid);
 }
 
 /** Convert struct mxArray to BSON array.
@@ -340,10 +340,10 @@ static bool ConvertStructArrayToBSON(const mxArray* input,
   int i, j;
   if (num_elements == 1) {
     bson_t document;
-    if (name && bson_append_document_begin(output,
+    if (name && !bson_append_document_begin(output,
                                            name,
                                            (int)strlen(name),
-                                           &document) != TRUE)
+                                           &document))
       return false;
     for (i = 0; i < num_fields; ++i) {
       mxArray* element = mxGetFieldByNumber(input, 0, i);
@@ -362,24 +362,24 @@ static bool ConvertStructArrayToBSON(const mxArray* input,
                                 (name) ? &document : output))
           return false;
     }
-    if (name && bson_append_document_end(output, &document) != TRUE)
+    if (name && !bson_append_document_end(output, &document))
       return false;
   }
   else {
     char key[16];
-    if (name && bson_append_array_begin(output,
-                                        name,
-                                        (int)strlen(name),
-                                        &array) != TRUE)
+    if (name && !bson_append_array_begin(output,
+                                         name,
+                                         (int)strlen(name),
+                                         &array))
       return false;
     for (j = 0; j < num_elements; ++j) {
       bson_t document;
       if (sprintf(key, "%d", j) < 0)
         return false;
-      if (bson_append_document_begin((name) ? &array : output,
-                                     key,
-                                     (int)strlen(key),
-                                     &document) != TRUE)
+      if (!bson_append_document_begin((name) ? &array : output,
+                                      key,
+                                      (int)strlen(key),
+                                      &document))
         return false;
       for (i = 0; i < num_fields; ++i) {
         mxArray* element = mxGetFieldByNumber(input, 0, i);
@@ -387,11 +387,11 @@ static bool ConvertStructArrayToBSON(const mxArray* input,
         if (!ConvertArrayToBSON(element, field_name, &document))
           return false;
       }
-      if (bson_append_document_end((name) ? &array : output,
-                                   &document) != TRUE)
+      if (!bson_append_document_end((name) ? &array : output,
+                                    &document))
         return false;
     }
-    if (name && bson_append_array_end(output, &array) != TRUE)
+    if (name && !bson_append_array_end(output, &array))
       return false;
   }
   return true;
@@ -1331,7 +1331,7 @@ static mxArray* ConvertNextToMxArray(bson_iter_t* it) {
       break;
     case BSON_TYPE_UTF8:
     case BSON_TYPE_SYMBOL: {
-      bson_uint32_t length = 0;
+      uint32_t length = 0;
       const char* value = bson_iter_utf8(it, &length);
       element = mxCreateString(value);
       break;
@@ -1345,8 +1345,8 @@ static mxArray* ConvertNextToMxArray(bson_iter_t* it) {
     }
     case BSON_TYPE_BINARY: {
       bson_subtype_t subtype;
-      bson_uint32_t element_size;
-      const bson_uint8_t *binary;
+      uint32_t element_size;
+      const uint8_t *binary;
       bson_iter_binary(it, &subtype, &element_size, &binary);
       element = mxCreateNumericMatrix(1,
                                       element_size,
@@ -1368,7 +1368,7 @@ static mxArray* ConvertNextToMxArray(bson_iter_t* it) {
       element = mxCreateLogicalScalar(bson_iter_bool(it));
       break;
     case BSON_TYPE_DATE_TIME: {
-      bson_int64_t date_value = bson_iter_date_time(it);
+      int64_t date_value = bson_iter_date_time(it);
       mxArray* date_number = mxCreateDoubleScalar(
           ((double)date_value / 86400.0) + 719529);
       mexCallMATLAB(1, &element, 1, &date_number, "bson.datetime");
@@ -1384,7 +1384,7 @@ static mxArray* ConvertNextToMxArray(bson_iter_t* it) {
       break;
     case BSON_TYPE_CODE:
     case BSON_TYPE_CODEWSCOPE: {
-      bson_uint32_t length;
+      uint32_t length;
       element = mxCreateString(bson_iter_code(it, &length));
       break;
     }
@@ -1426,7 +1426,7 @@ EXTERN_C bool ConvertMxArrayToBSON(const mxArray* input, bson_t* output) {
 
 EXTERN_C bool ConvertBSONToMxArray(const bson_t* input, mxArray** output) {
   bson_iter_t it;
-  if (bson_iter_init(&it, input) == TRUE)
+  if (bson_iter_init(&it, input))
     *output = ConvertBSONIteratorToMxArray(&it);
   else
     *output = mxCreateDoubleMatrix(0, 0, mxREAL);
