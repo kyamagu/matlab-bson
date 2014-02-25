@@ -23,7 +23,6 @@ static bool ConvertBinaryArrayToBSON(const mxArray* input,
                                      const char* name,
                                      bson_t* output) {
   size_t num_elements = mxGetNumberOfElements(input);
-  uint8_t* values = (uint8_t*)mxGetData(input);
   int length = 0;
   const uint8_t* data;
   if (num_elements == 0)
@@ -890,8 +889,6 @@ static mxArray* ConvertBSONArrayToLogicalArray(bson_iter_t* it, int size) {
  */
 static mxArray* ConvertBSONArrayToCellArray(bson_iter_t* it, int size) {
   mxArray* element = mxCreateCellMatrix(1, size);
-  int index = 0;
-  bool is_end = false;
   int i;
   if (!element)
     return NULL;
@@ -987,7 +984,6 @@ static mxArray* ConvertBSONArrayToStructArray(bson_iter_t* it,
                                               int size,
                                               const char** keys) {
   char** safe_keys = CreateSafeKeys(size, keys);
-  int index = 0;
   mxArray* element;
   int i;
   if (!safe_keys)
@@ -1067,7 +1063,6 @@ static void MergeNumericArrays(mxArray** array) {
 static void MergeCellArrays(mxArray** array) {
   int size = mxGetNumberOfElements(*array);
   mxArray* element = mxGetCell(*array, 0);
-  mxClassID class_id = mxGetClassID(element);
   mwSize ndims = mxGetNumberOfDimensions(element);
   const mwSize* dims = mxGetDimensions(element);
   mxArray* new_array = NULL;
@@ -1114,7 +1109,6 @@ static void MergeCellArrays(mxArray** array) {
 static void MergeStructArrays(mxArray** array) {
   int size = mxGetNumberOfElements(*array);
   mxArray* element = mxGetCell(*array, 0);
-  mxClassID class_id = mxGetClassID(element);
   mwSize ndims = mxGetNumberOfDimensions(element);
   const mwSize* dims = mxGetDimensions(element);
   mxArray* new_array = NULL;
@@ -1196,7 +1190,6 @@ static void MergeStructArrays(mxArray** array) {
 static void MergeDateArrays(mxArray** array) {
   int size = mxGetNumberOfElements(*array);
   mxArray* element = mxGetCell(*array, 0);
-  mxClassID class_id = mxGetClassID(element);
   mwSize ndims = mxGetNumberOfDimensions(element);
   const mwSize* dims = mxGetDimensions(element);
   mxArray* new_array = NULL;
