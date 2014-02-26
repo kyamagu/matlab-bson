@@ -7,7 +7,6 @@
 #include <mex.h>
 #include "mex-dispatch.h"
 #include <stdlib.h>
-#include <string.h>
 
 #define MEX_ERROR(...) mexErrMsgIdAndTxt("bsonmex:error", __VA_ARGS__)
 #define MEX_ASSERT(condition, ...) if (!(condition)) MEX_ERROR(__VA_ARGS__)
@@ -30,14 +29,17 @@ static void CheckOutputArguments(int min_args, int max_args, int nlhs) {
  * @param input mxArray from which to get a BSON.
  * @return bson_t* value. Caller must destroy the returned bson.
  */
-bson_t* CreateBSON(const mxArray* input) {
+static bson_t* CreateBSON(const mxArray* input) {
   const uint8_t* data = (uint8_t*)(mxGetData(input));
   bson_t* value = bson_new_from_data(data, mxGetNumberOfElements(input));
   MEX_ASSERT(value, "Invalid BSON data.");
   return value;
 }
 
-void encode(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
+/** Encode a matlab variable in BSON.
+ */
+static void encode(int nlhs, mxArray *plhs[],
+                   int nrhs, const mxArray *prhs[]) {
   CheckInputArguments(1, 1, nrhs);
   CheckOutputArguments(0, 1, nlhs);
   bson_t value;
@@ -48,18 +50,22 @@ void encode(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   bson_destroy(&value);
 }
 
-void decode(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
+/** Decode a matlab variable from BSON.
+ */
+static void decode(int nlhs, mxArray *plhs[],
+                   int nrhs, const mxArray *prhs[]) {
   CheckInputArguments(1, 1, nrhs);
   CheckOutputArguments(0, 1, nlhs);
   bson_t* value = CreateBSON(prhs[0]);
-  if (!ConvertBSONToMxArray(value, &plhs[0])) {
-    bson_destroy(value);
-    MEX_ERROR("Failed to convert.");
-  }
+  bool result = ConvertBSONToMxArray(value, &plhs[0]);
   bson_destroy(value);
+  MEX_ASSERT(result, "Failed to convert.");
 }
 
-void validate(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
+/** Check if the input is a valid BSON.
+ */
+static void validate(int nlhs, mxArray *plhs[],
+                     int nrhs, const mxArray *prhs[]) {
   CheckInputArguments(1, 1, nrhs);
   CheckOutputArguments(0, 1, nlhs);
   bson_t* value = CreateBSON(prhs[0]);
@@ -68,7 +74,10 @@ void validate(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   bson_destroy(value);
 }
 
-void asJSON(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
+/** Convert BSON to JSON.
+ */
+static void asJSON(int nlhs, mxArray *plhs[],
+                   int nrhs, const mxArray *prhs[]) {
   CheckInputArguments(1, 1, nrhs);
   CheckOutputArguments(0, 1, nlhs);
   bson_t* value = CreateBSON(prhs[0]);

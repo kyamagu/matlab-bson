@@ -13,9 +13,8 @@ Build
 
 A UNIX environment is required to build the package. Get necessary tools to
 build libbson (automake, autoconf, libtool, gcc, make). If you don't have
-libbson installed in the system, you need the Internet connection to download
-the libbson package. Also `mex -setup` if you have never used `mex` command in
-Matlab.
+libbson installed in the system, you need the Internet connection. Also
+`mex -setup` if you have never used `mex` command in Matlab.
 
 Once all the requirements are met, type the following in Matlab to build. This
 will automatically download and compile the libbson package to build the Matlab

@@ -1,4 +1,4 @@
-/** MEX-disptach: Matlab MEX helper to build a library.
+/** MEX-disptach: Macro library to build a dispatchable MEX file.
  *
  * Example:
  *
@@ -18,7 +18,7 @@
  *   MEX_DISPATCH_MAIN(
  *     MEX_DISPATCH_ADD(myFunction),
  *     MEX_DISPATCH_ADD(myFunction2)
- *   );
+ *   )
  *
  * In Matlab,
  *
@@ -47,21 +47,23 @@
 #include <mex.h>
 #include <string.h>
 
-#define MEX_DISPATCH_DECLARE(name) EXTERN_C \
-    void name(int nlhs, mxArray** plhs, int nrhs, const mxArray** prhs)
+/** Declare a dispachable function.
+ */
+#define MEX_DISPATCH_DECLARE(name) \
+EXTERN_C void name(int nlhs, mxArray** plhs, int nrhs, const mxArray** prhs)
 
-/** Entry for the function table.
+/** Add a dispatch entry.
  */
-typedef struct {
-  const char* name;
-  void (*function)(int, mxArray**, int, const mxArray**);
-} function_entry_t;
 #define MEX_DISPATCH_ADD(name) {#name, name}
-#define MEX_DISPATCH_FUNCTION_TABLE(...) \
-    static const function_entry_t kFunctionTable[] = {__VA_ARGS__};
-/** Main entry point for MEX interface.
+
+/** Create a main entry point for MEX interface.
  */
-#define MEX_DISPATCH_MAIN_FUNCTION \
+#define MEX_DISPATCH_MAIN(...) \
+typedef struct { \
+  const char* name; \
+  void (*function)(int, mxArray**, int, const mxArray**); \
+} function_entry_t; \
+static const function_entry_t kFunctionTable[] = {__VA_ARGS__}; \
 void mexFunction(int nlhs, mxArray** plhs, int nrhs, const mxArray** prhs) { \
   int i = 0; \
   char function_name[64]; \
@@ -81,11 +83,5 @@ void mexFunction(int nlhs, mxArray** plhs, int nrhs, const mxArray** prhs) { \
   } \
   mexErrMsgIdAndTxt("dispatch:error", "Unknown function `%s`.", function_name); \
 }
-
-/** Do everything in one place.
- */
-#define MEX_DISPATCH_MAIN(...) \
-    MEX_DISPATCH_FUNCTION_TABLE(__VA_ARGS__) \
-    MEX_DISPATCH_MAIN_FUNCTION
 
 #endif /* __MEX_DISPATCH_H__ */
