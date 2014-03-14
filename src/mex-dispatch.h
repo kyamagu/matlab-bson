@@ -11,7 +11,8 @@
  *
  *   void myFunction2(int nlhs, mxArray** plhs,
  *                    int nrhs, const mxArray** prhs) {
- *     MEX_ASSERT(nrhs > 0, "Missing argument.");
+ *     if (nrhs < 1)
+ *       mexErrMsgTxt("Missing argument.");
  *     mexPrintf("myFunction2 called: %g.", mxGetScalar(prhs[0]));
  *   }
  *
@@ -25,8 +26,8 @@
  *   >> mylibrary('myFunction')     % --> myFunction called.
  *   >> mylibrary('myFunction2', 1) % --> myFunction2 called: 1.
  *
- * Note: add a function declaration list if splitting macros from
- * the function implementation.
+ * Note: add a function declaration list if splitting function implementation
+ * across multiple files.
  *
  *   // mylibrary.c
  *   #include "mex-dispatch.h"
@@ -39,8 +40,10 @@
  *
  *   // mylibrary-impl.c
  *   void myFunction(...) {}
+ *   void myFunction2(...) {}
  * 
  */
+
 #ifndef __MEX_DISPATCH_H__
 #define __MEX_DISPATCH_H__
 
@@ -81,7 +84,9 @@ void mexFunction(int nlhs, mxArray** plhs, int nrhs, const mxArray** prhs) { \
       return; \
     } \
   } \
-  mexErrMsgIdAndTxt("dispatch:error", "Unknown function `%s`.", function_name); \
+  mexErrMsgIdAndTxt("dispatch:error", \
+                    "Unknown function `%s`.", \
+                    function_name); \
 }
 
 #endif /* __MEX_DISPATCH_H__ */
