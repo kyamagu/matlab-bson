@@ -53,6 +53,7 @@ API
     datetime  Datetime type in BSON format.
     decode    Deserialize value from BSON format.
     encode    Serialize value in BSON format.
+    fromJSON  Convert JSON to BSON.
     make      Build a driver mex file.
     read      Read bson from file.
     validate  Validates BSON format.
