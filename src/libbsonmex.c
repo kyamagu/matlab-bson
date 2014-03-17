@@ -40,13 +40,12 @@ static bson_t* CreateBSON(const mxArray* input) {
  */
 static void encode(int nlhs, mxArray *plhs[],
                    int nrhs, const mxArray *prhs[]) {
+  bson_t value;
   CheckInputArguments(1, 1, nrhs);
   CheckOutputArguments(0, 1, nlhs);
-  bson_t value;
   MEX_ASSERT(ConvertMxArrayToBSON(prhs[0], &value), "Failed to convert.");
-  int size = value.len;
-  plhs[0] = mxCreateNumericMatrix(1, size, mxUINT8_CLASS, mxREAL);
-  memcpy(mxGetData(plhs[0]), bson_get_data(&value), size);
+  plhs[0] = mxCreateNumericMatrix(1, value.len, mxUINT8_CLASS, mxREAL);
+  memcpy(mxGetData(plhs[0]), bson_get_data(&value), value.len);
   bson_destroy(&value);
 }
 
@@ -54,10 +53,12 @@ static void encode(int nlhs, mxArray *plhs[],
  */
 static void decode(int nlhs, mxArray *plhs[],
                    int nrhs, const mxArray *prhs[]) {
+  bson_t* value = NULL;
+  bool result = false;
   CheckInputArguments(1, 1, nrhs);
   CheckOutputArguments(0, 1, nlhs);
-  bson_t* value = CreateBSON(prhs[0]);
-  bool result = ConvertBSONToMxArray(value, &plhs[0]);
+  value = CreateBSON(prhs[0]);
+  result = ConvertBSONToMxArray(value, &plhs[0]);
   bson_destroy(value);
   MEX_ASSERT(result, "Failed to convert.");
 }
@@ -66,10 +67,12 @@ static void decode(int nlhs, mxArray *plhs[],
  */
 static void validate(int nlhs, mxArray *plhs[],
                      int nrhs, const mxArray *prhs[]) {
+  bson_t* value = NULL;
+  bool result = false;
   CheckInputArguments(1, 1, nrhs);
   CheckOutputArguments(0, 1, nlhs);
-  bson_t* value = CreateBSON(prhs[0]);
-  bool result = bson_validate(value, BSON_VALIDATE_NONE, NULL);
+  value = CreateBSON(prhs[0]);
+  result = bson_validate(value, BSON_VALIDATE_NONE, NULL);
   plhs[0] = mxCreateLogicalScalar(result);
   bson_destroy(value);
 }
@@ -78,18 +81,44 @@ static void validate(int nlhs, mxArray *plhs[],
  */
 static void asJSON(int nlhs, mxArray *plhs[],
                    int nrhs, const mxArray *prhs[]) {
+  bson_t* value = NULL;
+  char* json_string = NULL;
   CheckInputArguments(1, 1, nrhs);
   CheckOutputArguments(0, 1, nlhs);
-  bson_t* value = CreateBSON(prhs[0]);
-  char* json_value = bson_as_json(value, NULL);
-  plhs[0] = mxCreateString(json_value);
-  bson_free(json_value);
+  value = CreateBSON(prhs[0]);
+  json_string = bson_as_json(value, NULL);
+  plhs[0] = mxCreateString(json_string);
+  bson_free(json_string);
   bson_destroy(value);
+}
+
+/** Convert JSON to BSON.
+ */
+static void fromJSON(int nlhs, mxArray *plhs[],
+                     int nrhs, const mxArray *prhs[]) {
+  char* json_string = NULL;
+  bool result = false;
+  bson_t value;
+  bson_error_t error_value;
+  CheckInputArguments(1, 1, nrhs);
+  CheckOutputArguments(0, 1, nlhs);
+  MEX_ASSERT(mxIsChar(prhs[0]), "Expected a JSON string.");
+  json_string = mxArrayToString(prhs[0]);
+  result = bson_init_from_json(&value,
+                               json_string,
+                               mxGetNumberOfElements(prhs[0]) + 1,
+                               &error_value);
+  mxFree(json_string);
+  MEX_ASSERT(result, error_value.message);
+  plhs[0] = mxCreateNumericMatrix(1, value.len, mxUINT8_CLASS, mxREAL);
+  memcpy(mxGetData(plhs[0]), bson_get_data(&value), value.len);
+  bson_destroy(&value);
 }
 
 MEX_DISPATCH_MAIN(
   MEX_DISPATCH_ADD(encode),
   MEX_DISPATCH_ADD(decode),
   MEX_DISPATCH_ADD(validate),
-  MEX_DISPATCH_ADD(asJSON)
+  MEX_DISPATCH_ADD(asJSON),
+  MEX_DISPATCH_ADD(fromJSON)
 )

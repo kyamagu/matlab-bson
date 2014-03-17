@@ -25,7 +25,10 @@ function testBSON
   for i = 1:numel(fixtures)
     value1 = fixtures{i};
     bson_value = bson.encode(value1);
+    assert(bson.validate(bson_value));
     value2 = bson.decode(bson_value);
+    json_value = bson.asJSON(bson_value);
+    bson_value2 = bson.fromJSON(json_value);
     disp(value1);
     disp(value2);
   end
