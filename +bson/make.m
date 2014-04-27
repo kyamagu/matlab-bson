@@ -12,6 +12,7 @@ function make(varargin)
 %    Option name         Description
 %    ----------------    -------------------------------------------------
 %    --download-libbson  logical flag of whether to download bson source.
+%    --libbson-version   version number of libbson to download.
 %    --libbson-path      path to libejdb.a.
 %
 % Example:
@@ -65,10 +66,14 @@ function config = parse_options(varargin)
 %PARSE_OPTIONS Parse build options.
   config.download_libbson = true;
   config.libbson_path = '-lbson-1.0';
+  config.libbson_version = '0.6.8';
   mark_for_delete = false(size(varargin));
   for i = 1:2:numel(varargin)
     if strcmp(varargin{i}, '--libbson-path')
       config.libbson_path = varargin{i+1};
+      mark_for_delete(i:i+1) = true;
+    elseif strcmp(varargin{i}, '--libbson-version')
+      config.libbson_version = varargin{i+1};
       mark_for_delete(i:i+1) = true;
     elseif strcmp(varargin{i}, '--download-libbson')
       config.download_libbson = logical(varargin{i+1});
@@ -88,13 +93,13 @@ end
 
 function config = download_libbson(root_dir, config)
 %DOWNLOAD_EJDB Download the latest EJDB package from GitHub.
-  version_number = '0.6.4';
-  libbson = fullfile(root_dir, sprintf('libbson-%s', version_number));
+  libbson = fullfile(root_dir, sprintf('libbson-%s', config.libbson_version));
   if ~exist(libbson, 'dir')
     github_url = sprintf(...
         'https://github.com/mongodb/libbson/archive/%s.zip', ...
-        version_number);
-    zip_file = fullfile(root_dir, sprintf('libbson-%s.zip', version_number));
+        config.libbson_version);
+    zip_file = fullfile(root_dir, ...
+                        sprintf('libbson-%s.zip', config.libbson_version));
     disp(['Downloading ', github_url]);
     urlwrite(github_url, zip_file);
     disp(['Extracting ' zip_file]);
