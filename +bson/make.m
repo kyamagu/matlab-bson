@@ -66,7 +66,7 @@ function config = parse_options(varargin)
 %PARSE_OPTIONS Parse build options.
   config.download_libbson = true;
   config.libbson_path = '-lbson-1.0';
-  config.libbson_version = '0.8.4';
+  config.libbson_version = '1.0.0';
   mark_for_delete = false(size(varargin));
   for i = 1:2:numel(varargin)
     if strcmp(varargin{i}, '--libbson-path')
